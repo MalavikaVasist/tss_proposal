@@ -1,0 +1,9 @@
+# Java archives (large binaries, e.g. ETC tools)
+*.jar
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
