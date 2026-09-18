@@ -1,5 +1,5 @@
 """
-Select MELCHIORS telluric standard stars observable from La Palma (Jan–Jun).
+Select MELCHIORS telluric standard stars observable from La Palma (Jan–Sep).
 
 Selection criteria:
     1. Spectral type O, B, or A only.
@@ -37,7 +37,7 @@ warnings.filterwarnings("ignore", category=erfa.ErfaWarning)
 # ============================================================
 
 CATALOGUE_FILE = "melchiors_catalogue_colons.csv"
-OUTPUT_FILE = "melchiors_jan_june_visibility.csv"
+OUTPUT_FILE = "melchiors_jan_sept_visibility.csv"
 YEAR = 2027
 
 MIN_DECLINATION = -30.0
@@ -118,7 +118,7 @@ def declination_filter(df):
 
 def get_nightly_times(year):
     """
-    Generate per-night time grids for Jan 1 to Jun 30.
+    Generate per-night time grids for Jan 1 to Sep 30.
 
     Returns a list of (date_label, times_array) tuples,
     one per night. Each night spans 18:00 UTC to 06:00 UTC next day
@@ -128,7 +128,7 @@ def get_nightly_times(year):
     from datetime import date, timedelta
 
     start_date = date(year, 1, 1)
-    end_date = date(year, 6, 30)
+    end_date = date(year, 9, 30)
 
     nights = []
     current = start_date
@@ -269,8 +269,8 @@ def calculate_visibility(df):
         # For each star, find longest continuous run this night
         for i in range(n_stars):
             run_length = longest_continuous_run(visible[i])
-            continuous_hours = run_length * TIME_STEP_MINUTES / 60.0 ## longest continuous hours per star through one night
-            continuous_hours_grid[i, night_idx] = continuous_hours   ## longest continuous hours per star through one night
+            continuous_hours = run_length * TIME_STEP_MINUTES / 60.0 ## longest continuous hours per star through this night
+            continuous_hours_grid[i, night_idx] = continuous_hours   ## longest continuous hours per star through this night
 
 
             if continuous_hours > best_continuous_hours[i]:
@@ -336,14 +336,14 @@ def plot_month_histogram(df):
     """
 
     months = df["best_month"].values
-    month_names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
+    month_names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"]
 
     fig, ax = plt.subplots(figsize=(8, 5))
 
-    bins = np.arange(0.5, 7.5, 1)
+    bins = np.arange(0.5, 10.5, 1)
     ax.hist(months, bins=bins, color="steelblue", edgecolor="black", alpha=0.8)
 
-    ax.set_xticks(range(1, 7))
+    ax.set_xticks(range(1, 10))
     ax.set_xticklabels(month_names)
     ax.set_xlabel("Month of best continuous observability")
     ax.set_ylabel("Number of OBA stars")
@@ -365,8 +365,8 @@ def plot_month_histogram(df):
              f"_sun{MAX_SUN_ALTITUDE}_moon{MIN_MOON_SEPARATION_DEG}"
              f"_step{TIME_STEP_MINUTES}min"
              f"_cont{MIN_CONTINUOUS_HOURS}h")
-    plt.savefig(f"{fname}.pdf")
-    print(f"\nHistogram saved: {fname}.pdf")
+    plt.savefig(f"plots/{fname}.pdf")
+    print(f"\nHistogram saved: plots/{fname}.pdf")
     plt.show()
 
 
@@ -414,7 +414,7 @@ def plot_visibility_heatmap(heatmap, nights):
     # Y-axis formatting: show month labels
     month_starts = []
     month_labels = []
-    month_names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
+    month_names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"]
     for i, d in enumerate(dates):
         if d.day == 1:
             month_starts.append(i)
@@ -422,7 +422,7 @@ def plot_visibility_heatmap(heatmap, nights):
 
     ax.set_yticks(month_starts)
     ax.set_yticklabels(month_labels)
-    ax.set_ylabel("Night (Jan–Jun 2027)")
+    ax.set_ylabel("Night (Jan–Sep 2027)")
 
     ax.set_title(
         f"Telluric standard availability: La Palma {YEAR}\n"
@@ -436,8 +436,8 @@ def plot_visibility_heatmap(heatmap, nights):
              f"_sun{MAX_SUN_ALTITUDE}_moon{MIN_MOON_SEPARATION_DEG}"
              f"_step{TIME_STEP_MINUTES}min"
              f"_cont{MIN_CONTINUOUS_HOURS}h")
-    plt.savefig(f"{fname}.pdf")
-    print(f"\nHeatmap saved: {fname}.pdf")
+    plt.savefig(f"plots/{fname}.pdf")
+    print(f"\nHeatmap saved: plots/{fname}.pdf")
     plt.show()
 
 
@@ -447,7 +447,7 @@ def plot_visibility_heatmap(heatmap, nights):
 
 def plot_stars_per_night_by_month(df, nights, continuous_hours_grid):
     """
-    For each month (Jan to Jun), plot a bar chart showing how many stars
+    For each month (Jan to Sep 2027), plot a bar chart showing how many stars
     have ≥ MIN_CONTINUOUS_HOURS continuous observability on each night.
 
     This helps identify which 2 to 3 nights per month have ≥3 stars
@@ -463,11 +463,15 @@ def plot_stars_per_night_by_month(df, nights, continuous_hours_grid):
     # Get star names for labelling
     star_labels = df["obsID"].values.astype(str)
 
+    # date (ISO) -> list of qualifying obsIDs (int), collected while we
+    # scan the nights; later passed to tabulate_by_obsids() for ETC input
+    stars_by_night = {}
+
 
     n_nights = len(nights)
-    month_names = {1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun"}
+    month_names = {1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun", 7: "Jul", 8: "Aug", 9: "Sep"}
 
-    for month_num in range(1, 7):
+    for month_num in range(1, 10):
         # Find night indices for this month
         night_indices = [
             i for i, (m, d, t) in enumerate(nights) if m == month_num
@@ -491,6 +495,8 @@ def plot_stars_per_night_by_month(df, nights, continuous_hours_grid):
             stars_per_night.append(count)
             night_dates.append(nights[ni][1].day)
             star_names_per_night.append(names)
+            # Save the qualifying obsIDs for this night
+            stars_by_night[nights[ni][1].isoformat()] = [int(s) for s in names]
 
         stars_per_night = np.array(stars_per_night)
 
@@ -531,15 +537,15 @@ def plot_stars_per_night_by_month(df, nights, continuous_hours_grid):
                  f"_sun{MAX_SUN_ALTITUDE}_moon{MIN_MOON_SEPARATION_DEG}"
                  f"_step{TIME_STEP_MINUTES}min"
                  f"_cont{MIN_CONTINUOUS_HOURS}h")
-        plt.savefig(f"{fname}.pdf")
-        print(f"Saved: {fname}.pdf")
+        plt.savefig(f"plots/{fname}.pdf")
+        print(f"Saved: plots/{fname}.pdf")
         plt.show()
 
     # Print best nights (>=3 stars) as a summary table
     print(f"\n{'='*60}")
     print("Nights with ≥3 stars available (good for 2-3 day observing runs):")
     print(f"{'='*60}")
-    for month_num in range(1, 7):
+    for month_num in range(1, 10):
         night_indices = [
             i for i, (m, d, t) in enumerate(nights) if m == month_num
         ]
@@ -551,7 +557,95 @@ def plot_stars_per_night_by_month(df, nights, continuous_hours_grid):
             if len(names) >= 3:
                 date = nights[ni][1]
                 print(f"  {date.isoformat()}  ({month_names[month_num]}): "
-                      f"{len(names)} stars — {', '.join(names)}") 
+                      f"{len(names)} stars — {', '.join(names)}")
+
+    # Save the per-night obsID lists (date -> [obsID, ...]) so you can feed
+    # a chosen night's list straight into tabulate_by_obsids() below.
+    import json
+    json_path = Path("plots/nightly_star_obsids.json")
+    json_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(json_path, "w") as fh:
+        json.dump(stars_by_night, fh, indent=2, sort_keys=True)
+    print(f"\nSaved per-night obsID lists to: {json_path}")
+
+    return stars_by_night
+
+
+# ============================================================
+# TABULATE A LIST OF obsIDs (INPUT = LIST OF obsIDs)
+# ============================================================
+
+def tabulate_by_obsids(df, obs_ids, save_csv=None):
+    """
+    Given a list of obsIDs (e.g. one night's list returned / saved by
+    plot_stars_per_night_by_month), return a table with the catalogue
+    columns needed to run an ETC for another telescope:
+
+        obsID, Vmag, SpType, ra, dec, airmass, exptime
+
+    `airmass` is the star's best airmass (df["best_airmass"], i.e. the
+    minimum airmass over its best continuous window as computed by
+    calculate_visibility). `exptime` is the MELCHIORS reference exposure
+    time carried over from the catalogue, in seconds.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame as produced by calculate_visibility (contains obsID,
+        Vmag, SpType, ra, dec, best_airmass and, when loaded from the
+        catalogue, exptime).
+    obs_ids : list of int or str
+        The obsIDs to look up, returned in the order you give them.
+    save_csv : str, optional
+        If given, write the table to this path.
+
+    Returns
+    -------
+    pd.DataFrame
+        One row per obsID (missing IDs are reported and skipped).
+    """
+    obs_ids = [int(o) for o in obs_ids]
+
+    known = set(df["obsID"].astype(int))
+    missing = [o for o in obs_ids if o not in known]
+    if missing:
+        print(f"Warning: obsIDs not found in df: {missing}")
+
+    lookup = df.copy()
+    lookup["obsID"] = lookup["obsID"].astype(int)
+    order = {o: i for i, o in enumerate(obs_ids)}
+    sel = lookup[lookup["obsID"].isin(order)].copy()
+    sel["_order"] = sel["obsID"].map(order)
+    sel = sel.sort_values("_order").drop(columns="_order").reset_index(drop=True)
+
+    out = pd.DataFrame({
+        "obsID": sel["obsID"],
+        "Vmag": sel["Vmag"],
+        "SpType": sel["SpType"],
+        "ra": sel["ra"],
+        "dec": sel["dec"],
+        "airmass": sel["best_airmass"] if "best_airmass" in sel else np.nan,
+    })
+    if "exptime" in sel.columns:
+        out["exptime"] = sel["exptime"]
+    else:
+        out["exptime"] = np.nan
+
+    if len(out) == 0:
+        print("No matching obsIDs found.")
+        return out
+
+    # print("=" * 78)
+    # print("MELCHIORS properties for requested obsIDs "
+    #       "(airmass = best; exptime = reference, s):")
+    # print("=" * 78)
+    # print(out.to_string(index=False))
+
+    if save_csv:
+        out.to_csv(save_csv, index=False)
+        print(f"\nSaved table to: {save_csv}")
+
+    return out
 
 
 # ============================================================
@@ -906,7 +1000,7 @@ def plot_night_trajectory(df, nights, star_idx, night_idx=None):
 
     plt.tight_layout()
     safe_name = object_name.replace(" ", "_")
-    fname = f"trajectory_{safe_name}_{night_date.isoformat()}.pdf"
+    fname = f"plots/trajectory_{safe_name}_{night_date.isoformat()}.pdf"
     plt.savefig(fname, bbox_inches="tight")
     print(f"\nTrajectory plot saved: {fname}")
     plt.show()
@@ -934,7 +1028,7 @@ def main():
 
     heatmap = compute_heatmap(df, n_nights, n_times, visibility_per_night, continuous_hours_grid)
 
-    # Filter: require >= MIN_CONTINUOUS_HOURS continuous
+    # Filter: require >= MIN_CONTINUOUS_HOURS continuous atleast on one night
     print(f"\nFiltering for ≥{MIN_CONTINUOUS_HOURS} continuous hours...")
     df_good = df[df["best_continuous_hours"] >= MIN_CONTINUOUS_HOURS].copy()
     print(f"Stars with ≥{MIN_CONTINUOUS_HOURS}h continuous: {len(df_good)}")

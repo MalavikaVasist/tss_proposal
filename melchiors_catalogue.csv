@@ -40,6 +40,9 @@
     SNR-V             (F5.1)  Estimated SNR in the V band [ucd=stat.snr]
     date-avg (s)      (A19)   Date [center of the observation] [ucd=time.epoch]
     FileName          (A12)   Filename of the spectrum [ucd=meta.id;meta.file]
+
+hmsToDegrees(RAJ2000)
+dmsToDegrees(DEJ2000)
 ------ ------ ----- ---------------------- ----------- ------------ ------- ------ ----- ------------------- ------------                                                                                              
 obsID  Vmag  B-V   SpType                 RAJ200("h:m:s") DEJ20("d:m:s") airmass exptime(s) SNR-V date-avg(s)        FileName    
 ------ ------ ----- ---------------------- ----------- ------------ ------- ------ ----- ------------------- ------------

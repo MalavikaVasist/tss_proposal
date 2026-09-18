@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp spec="1.0+" codebase="http://www.tng.iac.es/instruments/giano-b/resources/" href="NSTS_GIANO-B.jnlp">
+
+	<information>
+		<title>New Short Term Scheduler</title>
+		<vendor>Nicolas Buchschacher</vendor>
+		<description>GIANO-B observing blocks preparation software</description>
+			<offline-allowed />
+	</information>
+
+	<resources>
+		<j2se version="1.7+" href="http://java.sun.com/products/autodl/j2se"/>
+		<jar href="NSTS_GIANO-B.jar"/>
+	</resources>
+
+	<application-desc main-class="ch.unige.obs.nsts.main.NSTS" />
+
+	<security>
+	  <all-permissions/>
+	</security>
+
+</jnlp>
