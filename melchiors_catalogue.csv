@@ -43,6 +43,8 @@
 
 hmsToDegrees(RAJ2000)
 dmsToDegrees(DEJ2000)
+https://research.iac.es/OOCC/observing-tools/exposure-time-calculators/
+
 ------ ------ ----- ---------------------- ----------- ------------ ------- ------ ----- ------------------- ------------                                                                                              
 obsID  Vmag  B-V   SpType                 RAJ200("h:m:s") DEJ20("d:m:s") airmass exptime(s) SNR-V date-avg(s)        FileName    
 ------ ------ ----- ---------------------- ----------- ------------ ------- ------ ----- ------------------- ------------

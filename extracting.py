@@ -37,7 +37,7 @@ warnings.filterwarnings("ignore", category=erfa.ErfaWarning)
 # ============================================================
 
 CATALOGUE_FILE = "melchiors_catalogue_colons.csv"
-OUTPUT_FILE = "melchiors_jan_sept_visibility.csv"
+OUTPUT_FILE = "melchiors_jan_sept_visibility_6h.csv"
 YEAR = 2027
 
 MIN_DECLINATION = -30.0
